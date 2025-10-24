@@ -1,6 +1,6 @@
 pkgname=qt6-qtwebengine
-pkgver=6.9.2
-pkgrel=1
+pkgver=6.10.0
+pkgrel=2
 pkgdesc="Provides support for web applications using the Chromium browser project"
 arch=('x86_64')
 url="https://www.qt.io"
@@ -14,7 +14,7 @@ depends=(
     'alsa-lib'
     'dbus'
     'expat'
-    #'ffmpeg'
+    'ffmpeg'
     'fontconfig'
     'freetype2'
     'gcc-libs'
@@ -73,10 +73,10 @@ makedepends=(
     'qt6-qttools'
     'qt6-qtwebsockets'
 )
-_chromium=20a5757595b39150c1cab9eccf04cc8057dd1462
+_chromium=
 source=(git+https://code.qt.io/qt/${pkgname#*-}#tag=v${pkgver}
     git+https://code.qt.io/qt/qtwebengine-chromium)
-sha256sums=(81ce308ea2295797d0e9a65c72cb774b63f28dc87e2dd45631c8979d2143a192
+sha256sums=(bf7483c49ea6f7695d31fade149c7049644131a8df21209ed3f691a62357f67d
     SKIP)
 
 prepare() {
@@ -86,16 +86,13 @@ prepare() {
     git submodule set-url src/3rdparty ${srcdir}/qtwebengine-chromium
     git -c protocol.file.allow=always submodule update
 
-    # Fix rendering glitches (see https://bugreports.qt.io/browse/QTBUG-138641
-    # and https://bugreports.qt.io/browse/QTBUG-139091).
-    git cherry-pick -n 9dd5105673f30fa6e8dc9bb3ee5cf4f51cec6ed2
-
-    # Revert commit that breaks GPU rendering https://bugreports.qt.io/browse/QTBUG-139424
-    git revert -n ddcd30454aa6338d898c9d20c8feb48f36632e16
+    # Fix GPU rendering with mesa 25.2
+    git cherry-pick -n ac20cd91b59dcaa40a8106354cb4253c541e7643
 
     # Bump chromium to head of stable branch
     cd src/3rdparty
     [[ -n ${_chromium} ]] && git checkout ${_chromium} || true
+
 }
 
 build() {
@@ -108,7 +105,7 @@ build() {
         -D INSTALL_LIBDIR=lib64
         -D CMAKE_MESSAGE_LOG_LEVEL=STATUS
         -D CMAKE_TOOLCHAIN_FILE=/usr/lib64/cmake/Qt6/qt.toolchain.cmake
-        -D QT_FEATURE_webengine_system_ffmpeg=OFF
+        -D QT_FEATURE_webengine_system_ffmpeg=ON
         -D QT_FEATURE_webengine_system_icu=ON
         -D QT_FEATURE_webengine_system_libevent=ON
         -D QT_FEATURE_webengine_system_re2=ON
